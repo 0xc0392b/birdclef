@@ -1,5 +1,5 @@
 from csv import DictReader
-from typing import List, Set, Dict, Iterator
+from typing import List, Tuple, Set, Dict, Iterator
 from random import choice as random_choice
 
 from numpy import ndarray
@@ -34,7 +34,7 @@ class Sample:
         return self._author
 
     @property
-    def coordinates(self) -> tuple[float, float]:
+    def coordinates(self) -> Tuple[float, float]:
         return (self._longitude, self._latitude)
 
     @property
