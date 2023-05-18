@@ -16,6 +16,7 @@ setup(
     # dependencies
     install_requires=[
         "numpy==1.24.2",
-        "librosa==0.10.0.post2"
+        "librosa==0.10.0.post2",
+        "scikit-learn==1.2.2"
     ]
 )

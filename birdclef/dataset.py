@@ -34,6 +34,10 @@ class Sample:
         return self._author
 
     @property
+    def audio_file_name(self) -> str:
+        return self._audio_file_path
+
+    @property
     def coordinates(self) -> Tuple[float, float]:
         return (self._longitude, self._latitude)
 
@@ -73,6 +77,9 @@ class Dataset:
 
     def pick_random(self) -> Sample:
         return random_choice(self._samples)
+
+    def sample(self, n: int) -> "Dataset":
+        return Dataset([self.pick_random() for _ in range(n)])
 
     @classmethod
     def load(cls, path: str) -> "Dataset":

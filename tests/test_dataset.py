@@ -21,6 +21,9 @@ class TestSample(TestCase):
     def test_author(self):
         self.assertEqual(self._sample.author, "Rolf A. de By")
 
+    def test_audio_file_path(self):
+        self.assertEqual(self._audio_file_path, "abethr1/XC128013.ogg")
+
     def test_coordinates(self):
         self.assertEqual(self._sample.coordinates, (38.2788, 4.3906))
 
@@ -45,6 +48,9 @@ class TestDataset(TestCase):
 
     def test_pick_random(self):
         self.assertTrue(self._dataset.pick_random() != None)
+
+    def test_sample(self):
+        self.assertEqual(len(self._dataset.sample(100)), 100)
 
     def test_with_label(self):
         equal = map(lambda x: x.label == "labnel", self._dataset.with_label("labnel"))

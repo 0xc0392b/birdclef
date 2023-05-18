@@ -10,4 +10,7 @@ test-dataset: install
 test-feature-engineering: install
 	python -m unittest tests.test_feature_engineering
 
-test-all: test-dataset test-feature-engineering
+test-preprocessing: install
+	python -m unittest tests.test_preprocessing
+
+test-all: test-dataset test-feature-engineering test-preprocessing

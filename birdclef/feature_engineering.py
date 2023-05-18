@@ -40,7 +40,7 @@ class PrincipalComponentAnalysis(Stage):
         return PCA(n_components=self._n_components).fit_transform(x)
 
 
-class Pipeline:
+class FeaturePipeline:
     def __init__(self, stages: List[Stage]) -> None:
         self._stages = stages
 
@@ -56,10 +56,10 @@ class Pipeline:
         return len(self._stages)
 
     def __call__(self, x: ndarray) -> ndarray:
-        return Pipeline.foldl(Pipeline.do_stage, x, self._stages)
+        return FeaturePipeline.foldl(FeaturePipeline.do_stage, x, self._stages)
 
     @classmethod
-    def build_pipeline_1(cls) -> "Pipeline":
+    def build_pipeline_1(cls) -> "FeaturePipeline":
         """
         fourier transform
         spectrogram
@@ -70,7 +70,7 @@ class Pipeline:
         ])
 
     @classmethod
-    def build_pipeline_2(cls, n_components: int) -> "Pipeline":
+    def build_pipeline_2(cls, n_components: int) -> "FeaturePipeline":
         """
         fourier transform
         spectrogram
@@ -85,7 +85,7 @@ class Pipeline:
         ])
 
     @classmethod
-    def build_pipeline_3(cls, n_components: int) -> "Pipeline":
+    def build_pipeline_3(cls, n_components: int) -> "FeaturePipeline":
         """
         fourier transform
         spectrogram
