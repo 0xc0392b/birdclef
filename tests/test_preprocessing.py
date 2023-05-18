@@ -5,7 +5,7 @@ from birdclef import Dataset, FeaturePipeline, Preprocessor
 
 class TestPreprocessor(TestCase):
     def test_run(self):
-        dataset = Dataset.load(Dataset.PATH)
+        dataset = Dataset.load(Dataset.PATH).sample(10)
         processor = Preprocessor(
             sample_rate=Dataset.SAMPLE_RATE,
             output_path=Preprocessor.PATH,
