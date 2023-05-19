@@ -3,29 +3,36 @@ from unittest import TestCase
 from birdclef import Dataset
 from birdclef import FeaturePipeline
 from birdclef import SpectrogramPreprocessor, FingerprintPreprocessor
+from birdclef import Classifier, ResultSet, Evaluator
 
 
-class TestSpectrogramPreprocessor(TestCase):
-    def test_run(self):
+class TestClassifier(UnitTest):
+    def test_classify(self):
         dataset = Dataset.load(Dataset.PATH).sample(10)
         pipeline = FeaturePipeline.build_pipeline_1()
 
-        processor = SpectrogramPreprocessor(
+        processor_1 = SpectrogramPreprocessor(
             sample_rate=Dataset.SAMPLE_RATE,
             output_path=Preprocessor.PATH,
             feature_pipeline=pipeline
         )
 
-        processor.run(Preprocessor.NUM_WORKERS, dataset)
-
-
-class TestFingerprintPreprocessor(TestCase):
-    def test_run(self):
-        dataset = Dataset.load(Dataset.PATH).sample(10)
-
-        processor = FingerprintPreprocessor(
+        processor_2 = FingerprintPreprocessor(
             sample_rate=Dataset.SAMPLE_RATE,
             output_path=Preprocessor.PATH
         )
 
-        processor.run(Preprocessor.NUM_WORKERS, dataset)
+        classifier = Classifier(model=Something())
+
+
+class TestResultSet(UnitTest):
+    def test_to_vector(self):
+        pass
+
+    def test_save_to_file(self):
+        pass
+
+
+class TestEvaluator(UnitTest):
+    def test_evaluate(self):
+        pass
