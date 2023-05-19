@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from birdclef import Sample, Dataset
+from birdclef import Dataset, Sample
 
 
 class TestSample(TestCase):

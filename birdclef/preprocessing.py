@@ -9,7 +9,7 @@ from .dataset import Dataset, Sample
 from .feature_engineering import FeaturePipeline
 
 
-class Preprocessor:
+class SpectrogramPreprocessor:
     NUM_WORKERS = 12
     PATH = "/media/william/Scratch/output/birdclef-2023/spectrograms"
 
@@ -44,8 +44,44 @@ class Preprocessor:
         with WorkerPool(num_workers) as pool:
             pool.map(
                 partial(
-                    Preprocessor.do_work,
+                    SpectrogramPreprocessor.do_work,
                     feature_pipeline=self._feature_pipeline,
+                    sample_rate=self._sample_rate,
+                    output_path=self._output_path
+                ),
+                dataset
+            )
+
+
+class FingerprintPreprocessor:
+    NUM_WORKERS = 12
+    PATH = "/media/william/Scratch/output/birdclef-2023/fingerprints"
+
+    def __init__(
+            self,
+            sample_rate: int,
+            output_path: str
+    ) -> None:
+        self._sample_rate = sample_rate
+        self._output_path = output_path
+
+    @staticmethod
+    def do_work(
+            sample: Sample,
+            sample_rate: int,
+            output_path: str
+    ) -> None:
+
+        # TODO compute acoustic hash and write it to disk
+        # ...
+
+        return
+
+    def run(self, num_workers: int, dataset: Dataset) -> None:
+        with WorkerPool(num_workers) as pool:
+            pool.map(
+                partial(
+                    FingerprintPreprocessor.do_work,
                     sample_rate=self._sample_rate,
                     output_path=self._output_path
                 ),

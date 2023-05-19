@@ -13,4 +13,7 @@ test-feature-engineering: install
 test-preprocessing: install
 	python -m unittest tests.test_preprocessing
 
-test-all: test-dataset test-feature-engineering test-preprocessing
+test-classifier: install
+	python -m unittest tests.test_classifier
+
+test-all: test-dataset test-feature-engineering test-preprocessing test-classifier
