@@ -4,6 +4,7 @@ from numpy import ndarray
 
 from .dataset import Dataset
 from .soundscape import Soundscape
+from .feature_engineering import FeaturePipeline
 
 
 class Classification:
@@ -49,7 +50,7 @@ class ResultSet:
 
 
 class Classifier:
-    def __init__(self, labels: List[Label]) -> None:
+    def __init__(self, labels: List[str]) -> None:
         self._labels = label
 
     def __call__(self, soundscape: Soundscape) -> ResultSet:
@@ -61,11 +62,28 @@ class Classifier:
         return
 
 
-class Evaluator:
-    def __init__(self, dataset: Dataset) -> None:
-        self._dataset = dataset
+class ModelEvaluation:
+    def __init__(self, accuracy: float) -> None:
+        self._accuracy = accuracy
 
-    def evaluate(self, classifier: Classifier) -> Something:
+    def __str__(self) -> str:
+        return f"{self._accuracy * 100}% accuracy"
+
+    @property
+    def accuracy(self) -> float:
+        return self._accuracy
+
+
+class Evaluator:
+    def __init__(
+            self,
+            dataset: Dataset,
+            feature_pipeline: FeaturePipeline
+    ) -> None:
+        self._dataset = dataset
+        self._feature_pipeline = feature_pipeline
+
+    def evaluate(self, classifier: Classifier) -> ModelEvaluation:
 
         # TODO measure the classifier's performance
         # ...

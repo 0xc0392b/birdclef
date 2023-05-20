@@ -16,4 +16,10 @@ test-preprocessing: install
 test-classifier: install
 	python -m unittest tests.test_classifier
 
-test-all: test-dataset test-feature-engineering test-preprocessing test-classifier
+test-fingerprint: install
+	python -m unittest tests.test_acoustic_fingerprint
+
+test-soundscape: install
+	python -m unittest tests.test_soundscape
+
+test-all: test-dataset test-feature-engineering test-preprocessing test-classifier test-fingerprint test-soundscape
