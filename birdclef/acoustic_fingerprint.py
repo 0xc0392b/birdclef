@@ -1,20 +1,43 @@
-from typing import List, Tuple, Iterator, Generator, Callable
+from typing import List, Tuple, Dict, Iterator, Generator, Callable
+from csv import DictReader as CSVDictReader
 from hashlib import sha1
+from statistics import NormalDist
+from random import choices as random_choices
+from pickle import dump as pickle_dump
+from pickle import load as pickle_load
 
-from numpy import array, ndarray
+from numpy import ndarray, array, matrix
+from numpy import min as ndarray_min
+from numpy import mean as ndarray_mean
+from numpy import std as ndarray_std
+from numpy import arange as ndarray_arange
+from numpy import vectorize as vectorize_func
+from scipy.ndimage import label as ndarray_label_features
+from scipy.ndimage import maximum_position as ndarray_extract_region_maximums
+
+from .dataset import Dataset
 
 
 class CandidatePeak:
-    def __init__(self, time: int, frequency: int) -> None:
-        self._time = time
+    def __init__(self, x: int, y: int, frequency: int) -> None:
+        self._x = x
+        self._y = y
         self._frequency = frequency
 
     def __str__(self) -> str:
-        return f"ts: {self._time}, hz: {self._frequency}"
+        return f"({self._x}, {self._y}), {self._frequency}hz"
+
+    @property
+    def x(self) -> int:
+        return self._x
+
+    @property
+    def y(self) -> int:
+        return self._y
 
     @property
     def time(self) -> int:
-        return self._time
+        return self._x
 
     @property
     def frequency(self) -> int:
@@ -69,32 +92,110 @@ class ConstellationMap:
     def __iter__(self) -> Iterator[CandidatePeak]:
         return iter(self._candidate_peaks)
 
-    def to_vectors(self) -> Tuple[ndarray, ndarray]:
-        times = array([p.time for p in self])
-        frequencies = array([p.frequency for p in self])
-        return (times, frequencies)
+    def to_vectors(self) -> Tuple[ndarray, ndarray, ndarray]:
+        xs = array([p.x for p in self])
+        ys = array([p.y for p in self])
+        fs = array([p.frequency for p in self])
+        return (xs, ys, fs)
 
-    def fingerprints(self) -> Generator[Fingerprint]:
-        for peak in self:
-            yield Fingerprint()
+    def fingerprints(
+            self,
+            label: str,
+            region_size: int,
+            hash_func: Callable
+    ) -> Generator[Fingerprint, None, None]:
+        for anchor_point in self:
+            start = anchor_point.time
+            end = start + region_size
+            region = filter(lambda x: start < x.time <= end, self)
+
+            for target_point in region:
+                yield Fingerprint.from_pair(
+                    a=anchor_point,
+                    b=target_point,
+                    hash_func=hash_func,
+                    offset=start,
+                    label=label
+                )
 
     @classmethod
-    def from_spectrogram(cls, spectrogram: ndarray) -> "ConstellationMap":
+    def from_spectrogram(
+            cls,
+            spectrogram: ndarray,
+            threshold: float
+    ) -> "ConstellationMap":
+        flattened = matrix.flatten(spectrogram)
+        filtered = flattened[flattened > ndarray_min(flattened)]
 
-        flattened = np.matrix.flatten(spectrogram)
-        filtered = flattened[flattened > np.min(flattened)]
+        ndist = NormalDist(ndarray_mean(filtered), ndarray_std(filtered))
+        zscore = vectorize_func(lambda x: ndist.zscore(x))
+        zscore_matrix = zscore(spectrogram)
 
-        mean, std = np.mean(filtered), np.std(filtered)
-        ndist = NormalDist(mu=mean, sigma=std)
+        mask_matrix = zscore_matrix > threshold
+        labelled_matrix, num_regions = ndarray_label_features(mask_matrix)
+        label_indices = ndarray_arange(num_regions) + 1
 
-        zscore = np.vectorize(lambda x: ndist.zscore(x))
-        zscore_matrix = zscore(x1)
-
-        labeled_matrix, num_features = ndimage.label(zscore_matrix > 2.75)
-        max_values = ndimage.maximum_position(
-            zscore_matrix, labeled_matrix, np.arange(num_features) + 1)
+        peak_positions = ndarray_extract_region_maximums(
+            zscore_matrix, labelled_matrix, label_indices)
 
         return cls([
-            CandidatePeak()
-            for x, y in max_values
+            CandidatePeak(
+                x=x,
+                y=y,
+                frequency=spectrogram[y, x]
+            )
+            for y, x in peak_positions
         ])
+
+
+class HashTable:
+    PATH = "/media/william/Scratch/output/birdclef-2023/hashtable"
+
+    def __init__(self, dictionary: Dict[int, int]) -> None:
+        self._dictionary = dictionary
+
+    def __len__(self) -> int:
+        return len(self._dictionary)
+
+    def __getitem__(self, key: str) -> None:
+        return
+
+    def save_to_disk(self, hashtable_path: str) -> None:
+        with open(f"{hashtable_path}/dictionary.pkl", "wb") as outfile:
+            pickle_dump(self._dictionary, outfile)
+
+    @classmethod
+    def from_file(cls, hashtable_path: str) -> "HashTable":
+        with open(f"{hashtable_path}/dictionary.pkl", "rb") as infile:
+            dictionary = pickle_load(infile)
+            return HashTable(dictionary)
+
+    @classmethod
+    def from_dataset(
+            cls,
+            dataset: Dataset,
+            fingerprint_path: str,
+            pick: int,
+            mask: int
+    ) -> "HashTable":
+        dictionary = {}
+
+        for label in dataset.labels():
+            samples = dataset.with_label(label)
+            choices = random_choices(samples, k=pick)
+            unique_choices = set(choices)
+
+            for sample in unique_choices:
+                path = f"{fingerprint_path}/{sample.audio_file_name}.csv"
+
+                with open(path, "rt") as csv:
+                    for row in CSVDictReader(csv):
+                        key = int(row["hash"], 16) & mask
+                        value = int(row["offset"])
+
+                        if key not in dictionary:
+                            dictionary[key] = []
+
+                        dictionary[key].append(value)
+
+        return HashTable(dictionary)

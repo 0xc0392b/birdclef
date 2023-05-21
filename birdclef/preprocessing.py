@@ -1,11 +1,14 @@
 from os import makedirs as make_directory
 from os.path import dirname as directory_name
 from multiprocessing import Pool as WorkerPool
+from csv import DictWriter as CSVDictWriter
 from functools import partial
 
-from numpy import save as save_ndarray
+from numpy import save as ndarray_write_to_disk
+from numpy import load as ndarray_load_from_disk
 
 from .dataset import Dataset, Sample
+from .acoustic_fingerprint import ConstellationMap, Fingerprint
 from .feature_engineering import FeaturePipeline
 
 
@@ -37,8 +40,9 @@ class SpectrogramPreprocessor:
         make_directory(directory_name(path), exist_ok=True)
 
         with open(path, "wb") as outfile:
-            save_ndarray(outfile, features)
-            print(f"DONE {path}")
+            ndarray_write_to_disk(outfile, features)
+
+        print(f"DONE {path}")
 
     def run(self, num_workers: int, dataset: Dataset) -> None:
         with WorkerPool(num_workers) as pool:
@@ -59,30 +63,65 @@ class FingerprintPreprocessor:
 
     def __init__(
             self,
-            sample_rate: int,
+            input_path: str,
             output_path: str
     ) -> None:
-        self._sample_rate = sample_rate
+        self._input_path = input_path
         self._output_path = output_path
 
     @staticmethod
     def do_work(
             sample: Sample,
-            sample_rate: int,
+            threshold: float,
+            region_size: int,
+            input_path: str,
             output_path: str
     ) -> None:
+        npy_path = f"{input_path}/{sample.audio_file_name}.npy"
+        csv_path = f"{output_path}/{sample.audio_file_name}.csv"
 
-        # TODO compute acoustic hash and write it to disk
-        # ...
+        make_directory(directory_name(csv_path), exist_ok=True)
 
-        return
+        with open(npy_path, "rb") as infile:
+            spectrogram = ndarray_load_from_disk(infile)
 
-    def run(self, num_workers: int, dataset: Dataset) -> None:
+            cmap = ConstellationMap.from_spectrogram(
+                spectrogram=spectrogram,
+                threshold=threshold
+            )
+
+            fingerprints = cmap.fingerprints(
+                label=sample.label,
+                region_size=region_size,
+                hash_func=Fingerprint.HASH_FUNCTION
+            )
+
+            with open(csv_path, "wt") as outfile:
+                writer = CSVDictWriter(outfile, ["hash", "offset"])
+                writer.writeheader()
+
+                for fingerprint in fingerprints:
+                    writer.writerow({
+                        "hash": fingerprint.hash_value.hexdigest(),
+                        "offset": fingerprint.offset
+                    })
+
+        print(f"DONE {csv_path}")
+
+    def run(
+            self,
+            num_workers: int,
+            region_size: int,
+            threshold: float,
+            dataset: Dataset
+    ) -> None:
         with WorkerPool(num_workers) as pool:
             pool.map(
                 partial(
                     FingerprintPreprocessor.do_work,
-                    sample_rate=self._sample_rate,
+                    threshold=threshold,
+                    region_size=region_size,
+                    input_path=self._input_path,
                     output_path=self._output_path
                 ),
                 dataset

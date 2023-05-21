@@ -1,4 +1,4 @@
-from .acoustic_fingerprint import Fingerprint, ConstellationMap, CandidatePeak
+from .acoustic_fingerprint import Fingerprint, ConstellationMap, CandidatePeak, HashTable
 from .classifier import Classifier, Classification, ResultSet, Evaluator
 from .dataset import Sample, Dataset, SummaryStatistics
 from .feature_engineering import FeaturePipeline

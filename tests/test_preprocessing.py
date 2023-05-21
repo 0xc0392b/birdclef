@@ -12,11 +12,14 @@ class TestSpectrogramPreprocessor(TestCase):
 
         processor = SpectrogramPreprocessor(
             sample_rate=Dataset.SAMPLE_RATE,
-            output_path=Preprocessor.PATH,
+            output_path=SpectrogramPreprocessor.PATH,
             feature_pipeline=pipeline
         )
 
-        processor.run(Preprocessor.NUM_WORKERS, dataset)
+        processor.run(
+            num_workers=SpectrogramPreprocessor.NUM_WORKERS,
+            dataset=dataset
+        )
 
 
 class TestFingerprintPreprocessor(TestCase):
@@ -24,8 +27,13 @@ class TestFingerprintPreprocessor(TestCase):
         dataset = Dataset.load(Dataset.PATH).sample(10)
 
         processor = FingerprintPreprocessor(
-            sample_rate=Dataset.SAMPLE_RATE,
-            output_path=Preprocessor.PATH
+            input_path=SpectrogramPreprocessor.PATH,
+            output_path=FingerprintPreprocessor.PATH
         )
 
-        processor.run(Preprocessor.NUM_WORKERS, dataset)
+        processor.run(
+            num_workers=FingerprintPreprocessor.NUM_WORKERS,
+            region_size=100,
+            threshold=2.75,
+            dataset=dataset
+        )

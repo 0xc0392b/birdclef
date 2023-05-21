@@ -1,24 +1,26 @@
 from unittest import TestCase
 
 from numpy import array
-from numpy.random import rand as rand_array
+from numpy.random import rand as ndarray_rand
 
-from birdclef import ConstellationMap, CandidatePeak, Fingerprint
+from birdclef import Dataset
+from birdclef import ConstellationMap, CandidatePeak, Fingerprint, HashTable
+from birdclef import FingerprintPreprocessor
 
 
 class TestFingerprint(TestCase):
     def setUp(self):
         self._fp1 = Fingerprint.from_pair(
-            a=CandidatePeak(100, 1000000),
-            b=CandidatePeak(200, 2000000),
+            a=CandidatePeak(1, 100, 1000000),
+            b=CandidatePeak(2, 200, 2000000),
             hash_func=Fingerprint.HASH_FUNCTION,
             offset=1,
             label="test"
         )
 
         self._fp2 = Fingerprint.from_pair(
-            a=CandidatePeak(100, 3000000),
-            b=CandidatePeak(200, 4000000),
+            a=CandidatePeak(1, 100, 3000000),
+            b=CandidatePeak(2, 200, 4000000),
             hash_func=Fingerprint.HASH_FUNCTION,
             offset=2,
             label="test"
@@ -44,20 +46,52 @@ class TestFingerprint(TestCase):
 class TestConstellationMap(TestCase):
     def test_to_vectors(self):
         cmap = ConstellationMap([
-            CandidatePeak(1, 100),
-            CandidatePeak(2, 200),
-            CandidatePeak(3, 300)
+            CandidatePeak(1, 100, 1000000),
+            CandidatePeak(2, 200, 2000000),
+            CandidatePeak(3, 300, 3000000)
         ])
 
-        times, frequencies = cmap.to_vectors()
+        xs, ys, fs = cmap.to_vectors()
 
-        self.assertTrue(all(times == array([1, 2, 3])))
-        self.assertTrue(all(frequencies == array([100, 200, 300])))
+        self.assertTrue(all(xs == array([1, 2, 3])))
+        self.assertTrue(all(ys == array([100, 200, 300])))
+        self.assertTrue(all(fs == array([1000000, 2000000, 3000000])))
 
     def test_fingerprints(self):
-        pass
+        cmap = ConstellationMap.from_spectrogram(
+            spectrogram=ndarray_rand(100, 1000),
+            threshold=1.5
+        )
+
+        fingerprints = cmap.fingerprints(
+            label="test",
+            region_size=1,
+            hash_func=Fingerprint.HASH_FUNCTION
+        )
+
+        self.assertTrue(len(list(fingerprints)) > 0)
 
     def test_from_spectrogram(self):
-        cmap = ConstellationMap.from_spectrogram(rand_array(100, 1000))
+        cmap = ConstellationMap.from_spectrogram(
+            spectrogram=ndarray_rand(100, 1000),
+            threshold=1.5
+        )
+
+        self.assertTrue(len(cmap) > 0)
+
+
+class TestHashTable(TestCase):
+    def test_from_dataset(self):
+        dataset = Dataset.load(Dataset.PATH)
+
+        table = HashTable.from_dataset(
+            dataset=dataset,
+            fingerprint_path=FingerprintPreprocessor.PATH,
+            pick=3,
+            mask=0xffffffffffffffff
+        )
+
+        print(len(table))
+        table.save_to_disk(HashTable.PATH)
 
         # ...

@@ -1,6 +1,6 @@
-from csv import DictReader
 from typing import List, Tuple, Set, Dict, Iterator
 from random import choice as random_choice
+from csv import DictReader as CSVDictReader
 
 from numpy import ndarray
 from librosa import load as load_audio
@@ -94,7 +94,7 @@ class Dataset:
                     longitude=row["longitude"],
                     latitude=row["latitude"]
                 )
-                for row in DictReader(csv)
+                for row in CSVDictReader(csv)
             ])
 
 
