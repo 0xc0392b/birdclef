@@ -87,7 +87,7 @@ class TestHashTable(TestCase):
         table = HashTable.from_dataset(
             dataset=dataset,
             fingerprint_path=FingerprintPreprocessor.PATH,
-            pick=3,
+            pick=10000,
             mask=0xffffffffffffffff
         )
 

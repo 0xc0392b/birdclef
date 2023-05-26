@@ -1,7 +1,7 @@
 from typing import List, Tuple, Dict, Iterator, Generator, Callable
-from csv import DictReader as CSVDictReader
 from hashlib import sha1
 from statistics import NormalDist
+from csv import DictReader as CSVDictReader
 from random import choices as random_choices
 from pickle import dump as pickle_dump
 from pickle import load as pickle_load
@@ -157,8 +157,11 @@ class HashTable:
     def __len__(self) -> int:
         return len(self._dictionary)
 
-    def __getitem__(self, key: str) -> None:
-        return
+    def __getitem__(self, key: int) -> List[Tuple[str, int]]:
+        if key in self._dictionary:
+            return self._dictionary[key]
+        else:
+            return None
 
     def save_to_disk(self, hashtable_path: str) -> None:
         with open(f"{hashtable_path}/dictionary.pkl", "wb") as outfile:
@@ -182,20 +185,23 @@ class HashTable:
 
         for label in dataset.labels():
             samples = dataset.with_label(label)
-            choices = random_choices(samples, k=pick)
-            unique_choices = set(choices)
+            sample_hashes = []
 
-            for sample in unique_choices:
+            for sample in samples:
                 path = f"{fingerprint_path}/{sample.audio_file_name}.csv"
 
                 with open(path, "rt") as csv:
                     for row in CSVDictReader(csv):
                         key = int(row["hash"], 16) & mask
                         value = int(row["offset"])
+                        sample_hashes.append((key, value))
 
-                        if key not in dictionary:
-                            dictionary[key] = []
+            for hash_value, offset in set(random_choices(sample_hashes, k=pick)):
+                if hash_value not in dictionary:
+                    dictionary[hash_value] = [(label, offset)]
+                else:
+                    dictionary[hash_value].append((label, offset))
 
-                        dictionary[key].append(value)
+            print(f"loaded {label}")
 
         return HashTable(dictionary)
