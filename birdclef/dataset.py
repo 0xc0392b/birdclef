@@ -69,11 +69,26 @@ class Dataset:
     def __iter__(self) -> Iterator[Sample]:
         return iter(self._samples)
 
+    def __getitem__(self, idx: int) -> Sample:
+        return self._samples[idx]
+
     def labels(self) -> Set[str]:
         return set([sample.label for sample in self])
 
     def with_label(self, label: str) -> List[Sample]:
         return list(filter(lambda x: x.label == label, self))
+
+    def label_to_number(self, label: str) -> int:
+        labels = sorted(self.labels())
+        indices = range(len(labels))
+        mapping = {label: idx for label, idx in zip(labels, indices)}
+        return mapping[label]
+
+    def number_to_label(self, number: int) -> str:
+        labels = sorted(self.labels())
+        indices = range(len(labels))
+        mapping = {idx: label for idx, label in zip(indices, labels)}
+        return mapping[number]
 
     def pick_random(self) -> Sample:
         return random_choice(self._samples)

@@ -10,16 +10,20 @@ test-dataset: install
 test-feature-engineering: install
 	python -m unittest tests.test_feature_engineering
 
-test-preprocessing: install
-	python -m unittest tests.test_preprocessing
-
 test-classifier: install
 	python -m unittest tests.test_classifier
 
-test-fingerprint: install
+test-acoustic-fingerprint: install
 	python -m unittest tests.test_acoustic_fingerprint
 
 test-soundscape: install
 	python -m unittest tests.test_soundscape
 
-test-all: test-dataset test-feature-engineering test-preprocessing test-classifier test-fingerprint test-soundscape
+test-spectrogram-preprocessing: install
+	python -m unittest tests.test_preprocessing.TestSpectrogramPreprocessor
+
+test-peak-preprocessing: install
+	python -m unittest tests.test_preprocessing.TestPeakPreprocessor
+
+test-fingerprint-preprocessing: install
+	python -m unittest tests.test_preprocessing.TestFingerprintPreprocessor

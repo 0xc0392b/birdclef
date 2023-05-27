@@ -57,6 +57,69 @@ class SpectrogramPreprocessor:
             )
 
 
+class PeakPreprocessor:
+    NUM_WORKERS = 6
+    PATH = "/media/william/Scratch/output/birdclef-2023/peaks"
+
+    def __init__(
+            self,
+            input_path: str,
+            output_path: str
+    ) -> None:
+        self._input_path = input_path
+        self._output_path = output_path
+
+    @staticmethod
+    def do_work(
+            sample: Sample,
+            threshold: float,
+            input_path: str,
+            output_path: str
+    ) -> None:
+        npy_path = f"{input_path}/{sample.audio_file_name}.npy"
+        csv_path = f"{output_path}/{sample.audio_file_name}.csv"
+
+        make_directory(directory_name(csv_path), exist_ok=True)
+
+        with open(npy_path, "rb") as infile:
+            spectrogram = ndarray_load_from_disk(infile)
+
+            cmap = ConstellationMap.from_spectrogram(
+                spectrogram=spectrogram,
+                threshold=threshold
+            )
+
+            with open(csv_path, "wt") as outfile:
+                writer = CSVDictWriter(outfile, ["time", "freq", "db"])
+                writer.writeheader()
+
+                for peak in cmap:
+                    writer.writerow({
+                        "time": peak.time,
+                        "freq": peak.freq,
+                        "db": peak.db
+                    })
+
+        print(f"DONE {csv_path}")
+
+    def run(
+            self,
+            num_workers: int,
+            threshold: float,
+            dataset: Dataset
+    ) -> None:
+        with WorkerPool(num_workers) as pool:
+            pool.map(
+                partial(
+                    PeakPreprocessor.do_work,
+                    threshold=threshold,
+                    input_path=self._input_path,
+                    output_path=self._output_path
+                ),
+                dataset
+            )
+
+
 class FingerprintPreprocessor:
     NUM_WORKERS = 12
     PATH = "/media/william/Scratch/output/birdclef-2023/fingerprints"

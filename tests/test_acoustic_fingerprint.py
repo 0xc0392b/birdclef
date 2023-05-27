@@ -4,7 +4,7 @@ from numpy import array
 from numpy.random import rand as ndarray_rand
 
 from birdclef import Dataset
-from birdclef import ConstellationMap, CandidatePeak, Fingerprint, HashTable
+from birdclef import ConstellationMap, CandidatePeak, Fingerprint
 from birdclef import FingerprintPreprocessor
 
 
@@ -78,20 +78,3 @@ class TestConstellationMap(TestCase):
         )
 
         self.assertTrue(len(cmap) > 0)
-
-
-class TestHashTable(TestCase):
-    def test_from_dataset(self):
-        dataset = Dataset.load(Dataset.PATH)
-
-        table = HashTable.from_dataset(
-            dataset=dataset,
-            fingerprint_path=FingerprintPreprocessor.PATH,
-            pick=10000,
-            mask=0xffffffffffffffff
-        )
-
-        print(len(table))
-        table.save_to_disk(HashTable.PATH)
-
-        # ...

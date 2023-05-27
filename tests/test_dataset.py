@@ -21,8 +21,8 @@ class TestSample(TestCase):
     def test_author(self):
         self.assertEqual(self._sample.author, "Rolf A. de By")
 
-    def test_audio_file(self):
-        self.assertEqual(self._sample.audio_file, "abethr1/XC128013.ogg")
+    def test_audio_file_name(self):
+        self.assertEqual(self._sample.audio_file_name, "abethr1/XC128013.ogg")
 
     def test_coordinates(self):
         self.assertEqual(self._sample.coordinates, (38.2788, 4.3906))
@@ -55,3 +55,21 @@ class TestDataset(TestCase):
     def test_with_label(self):
         equal = map(lambda x: x.label == "labnel", self._dataset.with_label("labnel"))
         self.assertTrue(all(equal))
+
+    def test_label_to_number(self):
+        nums_to_labels = {}
+
+        for label in self._dataset.labels():
+            num = self._dataset.label_to_number(label)
+            self.assertTrue(num not in nums_to_labels)
+            nums_to_labels[num] = label
+
+        for num, label in nums_to_labels.items():
+            self.assertEqual(num, self._dataset.label_to_number(label))
+
+    def test_number_to_label(self):
+        labels_to_nums = {}
+
+        for label in self._dataset.labels():
+            num = self._dataset.label_to_number(label)
+            self.assertEqual(label, self._dataset.number_to_label(num))
